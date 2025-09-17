@@ -1,4 +1,60 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
 function ProgramBuilder({ onGenerateProgram }) {
+  const [selections, setSelections] = useState({
+    goal: '',
+    level: '',
+    frequency: '',
+    duration: ''
+  });
+  const [isLevelLoading, setLevelLoading] = useState(true);
+
+  useEffect(() => {
+    // Component yüklendiğinde kullanıcının seviyesini tahmin et
+    const predictUserLevel = async () => {
+        // Bu veriler, gerçek bir uygulamada kullanıcının Fitbit hesabından
+        // veya benzeri bir kaynaktan gelmelidir.
+        const sampleUserData = {
+            "TotalSteps": 7500,
+            "TotalDistance": 5.5,
+            "VeryActiveMinutes": 20,
+            "FairlyActiveMinutes": 25,
+            "LightlyActiveMinutes": 190,
+            "SedentaryMinutes": 600,
+            "Calories": 2100
+        };
+
+        try {
+            const response = await axios.post('http://localhost:5000/predict-level', sampleUserData);
+            const predictedLevel = response.data.predictedLevel;
+            if (predictedLevel) {
+                // Tahmin edilen seviyeyi state'e ata
+                setSelections(prev => ({ ...prev, level: predictedLevel }));
+            }
+        } catch (error) {
+            console.error("Error predicting user level:", error);
+            // Hata durumunda varsayılan olarak bir şey seçilmesin diye boş bırakabiliriz.
+        } finally {
+            setLevelLoading(false);
+        }
+    };
+    predictUserLevel();
+  }, []); // Boş dependency array, sadece component mount edildiğinde çalışmasını sağlar
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setSelections(prev => ({ ...prev, [name]: value }));
+  };
+
+  const isFormComplete = Object.values(selections).every(value => value !== '');
+
+  const handleGenerateClick = () => {
+    if (isFormComplete) {
+      onGenerateProgram(selections);
+    }
+  };
+
   return (
     <div className="border-b border-stone-200 dark:border-gray-700 mb-16 pb-12">
       <div className="text-center mb-12">
@@ -18,20 +74,27 @@ function ProgramBuilder({ onGenerateProgram }) {
             <div className="space-y-4">
               <label className="flex flex-col">
                 <span className="text-sm font-medium text-stone-600 dark:text-gray-300 mb-1.5">Your Fitness Goal</span>
-                <select className="form-select w-full rounded-md border-stone-300 dark:border-gray-600 bg-stone-50 dark:bg-gray-800 text-stone-900 dark:text-gray-200 h-12 px-4 focus:border-red-500 focus:ring-red-500">
-                  <option>Select an option...</option>
-                  <option>Weight Loss</option>
-                  <option>Muscle Gain</option>
-                  <option>General Health</option>
+                <select name="goal" value={selections.goal} onChange={handleChange} className="form-select w-full rounded-md border-stone-300 dark:border-gray-600 bg-stone-50 dark:bg-gray-800 text-stone-900 dark:text-gray-200 h-12 px-4 focus:border-red-500 focus:ring-red-500">
+                  <option value="">Select an option...</option>
+                  <option value="muscle_gain">Muscle Gain</option>
+                  <option value="weight_loss">Weight Loss</option>
+                  <option value="strength">Strength</option>
+                  <option value="general_health">General Health</option>
                 </select>
               </label>
               <label className="flex flex-col">
                 <span className="text-sm font-medium text-stone-600 dark:text-gray-300 mb-1.5">Your Fitness Level</span>
-                <select className="form-select w-full rounded-md border-stone-300 dark:border-gray-600 bg-stone-50 dark:bg-gray-800 text-stone-900 dark:text-gray-200 h-12 px-4 focus:border-red-500 focus:ring-red-500">
-                  <option>Select an option...</option>
-                  <option>Beginner</option>
-                  <option>Intermediate</option>
-                  <option>Advanced</option>
+                <select name="level" value={selections.level} onChange={handleChange} disabled={isLevelLoading} className="form-select w-full rounded-md border-stone-300 dark:border-gray-600 bg-stone-50 dark:bg-gray-800 text-stone-900 dark:text-gray-200 h-12 px-4 focus:border-red-500 focus:ring-red-500 disabled:opacity-50">
+                  {isLevelLoading ? (
+                    <option>Analyzing your activity...</option>
+                  ) : (
+                    <>
+                      <option value="">Select an option...</option>
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </>
+                  )}
                 </select>
               </label>
             </div>
@@ -46,21 +109,20 @@ function ProgramBuilder({ onGenerateProgram }) {
             <div className="space-y-4">
               <label className="flex flex-col">
                 <span className="text-sm font-medium text-stone-600 dark:text-gray-300 mb-1.5">Exercise Frequency (Per Week)</span>
-                <select className="form-select w-full rounded-md border-stone-300 dark:border-gray-600 bg-stone-50 dark:bg-gray-800 text-stone-900 dark:text-gray-200 h-12 px-4 focus:border-red-500 focus:ring-red-500">
-                  <option>Select an option...</option>
-                  <option>1-2 Days</option>
-                  <option>3-4 Days</option>
-                  <option>5-6 Days</option>
+                <select name="frequency" value={selections.frequency} onChange={handleChange} className="form-select w-full rounded-md border-stone-300 dark:border-gray-600 bg-stone-50 dark:bg-gray-800 text-stone-900 dark:text-gray-200 h-12 px-4 focus:border-red-500 focus:ring-red-500">
+                  <option value="">Select an option...</option>
+                  <option value="3">3 Days</option>
+                  <option value="4">4 Days</option>
+                  <option value="5">5 Days</option>
                 </select>
               </label>
               <label className="flex flex-col">
                 <span className="text-sm font-medium text-stone-600 dark:text-gray-300 mb-1.5">Exercise Duration (Minutes)</span>
-                <select className="form-select w-full rounded-md border-stone-300 dark:border-gray-600 bg-stone-50 dark:bg-gray-800 text-stone-900 dark:text-gray-200 h-12 px-4 focus:border-red-500 focus:ring-red-500">
-                  <option>Select an option...</option>
-                  <option>15-30</option>
-                  <option>30-45</option>
-                  <option>45-60</option>
-                  <option>60+</option>
+                <select name="duration" value={selections.duration} onChange={handleChange} className="form-select w-full rounded-md border-stone-300 dark:border-gray-600 bg-stone-50 dark:bg-gray-800 text-stone-900 dark:text-gray-200 h-12 px-4 focus:border-red-500 focus:ring-red-500">
+                  <option value="">Select an option...</option>
+                  <option value="30">~30 Minutes</option>
+                  <option value="45">~45 Minutes</option>
+                  <option value="60">~60 Minutes</option>
                 </select>
               </label>
             </div>
@@ -70,8 +132,9 @@ function ProgramBuilder({ onGenerateProgram }) {
       
       <div className="flex mt-12 justify-center">
         <button 
-          onClick={onGenerateProgram}
-          className="flex min-w-[200px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-md h-14 px-8 bg-red-600 text-white text-lg font-bold leading-normal tracking-wide hover:bg-red-700 transition-colors shadow-lg hover:shadow-xl"
+          onClick={handleGenerateClick}
+          disabled={!isFormComplete}
+          className="flex min-w-[200px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-md h-14 px-8 bg-red-600 text-white text-lg font-bold leading-normal tracking-wide hover:bg-red-700 transition-colors shadow-lg hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           <span className="truncate">Generate Program</span>
         </button>

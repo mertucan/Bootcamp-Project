@@ -4,3 +4,83 @@
   margin: 0;
   padding: 0;
 }
+
+/* Personalized Program Table Styles */
+/* This container is mostly styled with Tailwind, but we can add overrides here if needed */
+.personalized-program-container h2 {
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.dark .personalized-program-container h2 {
+    color: #9CA3AF; /* gray-400 */
+}
+
+
+/* Styling for the table to match the screenshot and theme */
+.program-details table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.program-details th {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem;
+}
+
+.program-details td {
+    vertical-align: top;
+    padding: 1rem 0.75rem;
+    height: 14rem; /* Give cells a consistent height */
+}
+
+/* Style for the list of exercises inside each cell */
+.program-details td ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* Add space between exercises */
+}
+
+.program-details td li strong {
+    display: block;
+    font-weight: 600;
+}
+
+.program-details td li span {
+    font-size: 0.875rem; /* text-sm */
+    opacity: 0.8;
+}
+
+/* Dark theme specific overrides to ensure consistency */
+.dark .program-details td {
+    background-color: transparent !important;
+}
+
+/* MyActivity sayfası için grafik ve tablo düzeltmeleri */
+.dark .activity-charts .recharts-text.recharts-cartesian-axis-tick-value {
+    fill: #f1f5f9; /* Eksen etiketlerini beyaz yap */
+}
+
+/* MyActivity sayfası için grafik tooltip düzeltmeleri */
+.dark .recharts-tooltip-wrapper {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+    border-color: #334155 !important;
+}
+
+.dark .recharts-tooltip-label,
+.dark .recharts-tooltip-item-name,
+.dark .recharts-tooltip-item-value,
+.dark .recharts-tooltip-item-separator {
+    color: #f1f5f9 !important;
+}
+
+/* MyActivity Sayfası için Bilgi İpucu (Tooltip) Stilleri kaldırıldı, artık Tailwind ile yönetiliyor. */
+
+/* Tablo stilleri artık JSX içinde Tailwind ile yönetildiği için bu kural kaldırıldı. */

@@ -1,22 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import ProgramBuilder from './components/ProgramBuilder';
-import PersonalizedProgram from './components/PersonalizedProgram';
+import MainPage from './pages/MainPage';
+import MyActivity from './pages/MyActivity';
 
 function App() {
-  const [showProgram, setShowProgram] = useState(false);
-  const programRef = useRef(null);
-
-  const handleGenerateProgram = () => {
-    setShowProgram(true);
-  };
-
-  useEffect(() => {
-    if (showProgram && programRef.current) {
-      programRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [showProgram]);
+  const location = useLocation();
 
   return (
     <div 
@@ -31,12 +20,10 @@ function App() {
         
         <main className="flex-1 px-20 py-12">
           <div className="layout-content-container flex flex-col w-full mx-auto">
-            <ProgramBuilder onGenerateProgram={handleGenerateProgram} />
-            {showProgram && (
-              <div ref={programRef} className="mt-16">
-                <PersonalizedProgram />
-              </div>
-            )}
+            <Routes>
+              <Route path="/" element={<MainPage />} />
+              <Route path="/my-activity" element={<MyActivity />} />
+            </Routes>
           </div>
         </main>
         

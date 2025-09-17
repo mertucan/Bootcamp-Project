@@ -1,53 +1,95 @@
-function PersonalizedProgram() {
-  const weeklyProgram = [
-    { day: 'Monday', workout: 'Chest & Triceps' },
-    { day: 'Tuesday', workout: 'Back & Biceps' },
-    { day: 'Wednesday', workout: 'Rest' },
-    { day: 'Thursday', workout: 'Legs & Shoulders' },
-    { day: 'Friday', workout: 'Cardio & Abs' },
-    { day: 'Saturday', workout: 'Rest' },
-    { day: 'Sunday', workout: 'Rest' },
-  ];
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-1 gap-12 items-start">
-      <div className="space-y-8">
-        <div className="text-center lg:text-left">
-          <h1 className="text-5xl font-extrabold tracking-tighter text-stone-900 dark:text-white">
-            Your Personalized Program
-          </h1>
-          <p className="text-stone-500 dark:text-gray-400 text-lg mt-4 max-w-xl mx-auto lg:mx-0">
-            Below you can see your program tailored to your goals and preferences.
-          </p>
-        </div>
-        <div className="rounded-lg border border-stone-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg overflow-hidden">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-stone-800 dark:text-gray-200 mb-4">Weekly Training Plan</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse border border-stone-300 dark:border-gray-600">
-                <tbody>
-                  <tr>
-                    {weeklyProgram.map((item) => (
-                      <td key={`day-${item.day}`} className="border border-stone-300 dark:border-gray-600 px-4 py-4 text-sm font-medium text-stone-900 dark:text-white bg-stone-50 dark:bg-gray-800 text-center">
-                        {item.day}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    {weeklyProgram.map((item) => (
-                      <td key={`workout-${item.day}`} className="border border-stone-300 dark:border-gray-600 px-4 py-4 text-sm text-stone-600 dark:text-gray-300 bg-white dark:bg-gray-900 text-center">
-                        {item.workout}
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
+const PersonalizedProgram = ({ settings }) => {
+    const [programData, setProgramData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        // Sadece 'settings' prop'u mevcutsa ve doluysa API isteği yap
+        if (settings) {
+            setLoading(true);
+            setError(null);
+            setProgramData(null);
+
+            const fetchProgram = async () => {
+                try {
+                    // Backend API'sine POST isteği gönder
+                    // Gövdede kullanıcının seçimlerini yolla
+                    const response = await axios.post('http://localhost:5000/generate-program', settings);
+                    setProgramData(response.data);
+                } catch (err) {
+                    setError('Program yüklenirken bir hata oluştu. API sunucusunun çalıştığından emin olun.');
+                    console.error(err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            fetchProgram();
+        }
+    }, [settings]); // 'settings' değiştiğinde bu effect tekrar çalışır
+
+    if (!settings) {
+        return null; // Ayarlar yoksa hiçbir şey gösterme
+    }
+
+    if (loading) {
+        return <div className="personalized-program-container"><p>Programınız oluşturuluyor...</p></div>;
+    }
+
+    if (error) {
+        return <div className="personalized-program-container"><p className="error-message">{error}</p></div>;
+    }
+
+    if (!programData) {
+        return null;
+    }
+
+    // Haftanın günlerini doğru sırada render etmek için bir dizi oluşturalım
+    const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const schedule = programData.schedule || {};
+
+    return (
+        <div className="personalized-program-container">
+            <h2>Your Personalized Program</h2>
+            <div className="program-details rounded-lg border border-stone-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg overflow-hidden p-6">
+                <h3 className="text-2xl font-bold text-stone-800 dark:text-gray-200 mb-2">{programData.programName}</h3>
+                <p className="text-stone-500 dark:text-gray-400 mb-6">{programData.description}</p>
+                
+                <div className="overflow-x-auto">
+                    <table className="min-w-full border-collapse border border-stone-300 dark:border-gray-600">
+                        <thead>
+                            <tr>
+                                {weekDays.map(day => (
+                                    <th key={day} className="border border-stone-300 dark:border-gray-600 px-4 py-3 text-sm font-medium text-stone-900 dark:text-white bg-stone-50 dark:bg-gray-800 text-center">
+                                        {day}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                {weekDays.map(day => (
+                                    <td key={day} className="border border-stone-300 dark:border-gray-600 px-4 py-4 text-sm text-stone-600 dark:text-gray-300 bg-white dark:bg-gray-900 align-top h-48">
+                                        <ul className="space-y-2">
+                                            {(schedule[day] || []).map((exercise, index) => (
+                                                <li key={index}>
+                                                    <strong>{exercise.name}</strong>
+                                                    {exercise.sets && <span className="block text-xs">{exercise.sets}</span>}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </td>
+                                ))}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  );
-}
+    );
+};
 
 export default PersonalizedProgram;
