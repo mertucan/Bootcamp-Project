@@ -3,13 +3,15 @@ from flask_cors import CORS
 import joblib
 import pandas as pd
 import json
+import numpy as np # Numpy'yi içe aktar
 
 # Yeni program oluşturucu "beynimizi" import ediyoruz
 from program_generator import generate_program
 
 app = Flask(__name__)
 # Frontend'in çalıştığı porttan gelen tüm isteklere izin veriyoruz
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+# Debugging için ayarı daha esnek hale getiriyoruz
+CORS(app)
 
 # ML Modelini ve Scaler'ı yükle
 try:
@@ -20,16 +22,53 @@ except FileNotFoundError:
     model = None
     scaler = None
 
-# Raporları ve doğruluğu başlangıçta yükle
+# Veri setlerini ve raporları yükle
 try:
+    # Analiz için gerekli tüm veri setlerini yükle
+    activity_df = pd.read_csv('../data/mturkfitbit_export_4.12.16-5.12.16/Fitabase Data 4.12.16-5.12.16/dailyActivity_merged.csv')
+    sleep_df = pd.read_csv('../data/mturkfitbit_export_4.12.16-5.12.16/Fitabase Data 4.12.16-5.12.16/sleepDay_merged.csv')
+    heartrate_df = pd.read_csv('../data/mturkfitbit_export_4.12.16-5.12.16/Fitabase Data 4.12.16-5.12.16/heartrate_seconds_merged.csv')
+
     with open('ml_artifacts/classification_report.json', 'r') as f:
         classification_report_data = json.load(f)
     with open('ml_artifacts/model_accuracy.json', 'r') as f:
         accuracy_data = json.load(f)
 except FileNotFoundError:
-    print("Rapor dosyaları bulunamadı. Lütfen 'model_builder.py' script'ini çalıştırın.")
-    classification_report_data = None
-    accuracy_data = None
+    print("Rapor veya veri set dosyaları bulunamadı. Lütfen 'model_builder.py' script'ini çalıştırdığınızdan ve veri setinin doğru yolda olduğundan emin olun.")
+    activity_df, sleep_df, heartrate_df = None, None, None
+    classification_report_data, accuracy_data = None, None
+
+def calculate_stress_score(user_id):
+    """Kalp atış hızı değişkenliğine dayalı bir stres skoru hesaplar."""
+    if heartrate_df is None: return 0
+    user_hr = heartrate_df[heartrate_df['Id'] == user_id]['Value']
+    if len(user_hr) < 2: return 50 # Yetersiz veri için varsayılan
+    
+    # Kalp atış hızının standart sapmasını kullanarak bir stres metriği oluştur
+    hr_std_dev = user_hr.std()
+    # Tersine çevirerek daha yüksek std dev'nin daha düşük stres (daha iyi değişkenlik) anlamına gelmesini sağla
+    # Sonucu 0-100 aralığına normalize et (bu basit bir normalizasyondur)
+    stress_score = max(0, 100 - (hr_std_dev * 2)) 
+    return round(stress_score, 2)
+
+def get_user_sleep_data(user_id):
+    """Kullanıcının uyku verilerini alır ve bir kalite skoru hesaplar."""
+    if sleep_df is None: return {"quality_score": 0, "total_minutes_asleep": 0}
+    user_sleep = sleep_df[sleep_df['Id'] == user_id]
+    if user_sleep.empty: return {"quality_score": 0, "total_minutes_asleep": 0}
+    
+    # En son uyku kaydını al
+    latest_sleep = user_sleep.iloc[-1]
+    total_minutes_asleep = int(latest_sleep['TotalMinutesAsleep'])  # int64'den int'e dönüştür
+    total_time_in_bed = int(latest_sleep['TotalTimeInBed'])        # int64'den int'e dönüştür
+    
+    # Uyku Verimliliği = (Uyunan Süre / Yatakta Kalınan Süre) * 100
+    efficiency = (total_minutes_asleep / total_time_in_bed) * 100 if total_time_in_bed > 0 else 0
+    
+    return {
+        "quality_score": round(efficiency, 2),
+        "total_minutes_asleep": total_minutes_asleep
+    }
 
 @app.route('/predict-level', methods=['POST'])
 def predict_level_endpoint():
@@ -63,12 +102,15 @@ def predict_level_endpoint():
 
 @app.route('/activity-analysis', methods=['POST'])
 def activity_analysis_endpoint():
-    if not model or not scaler or not classification_report_data or not accuracy_data:
-        return jsonify({"error": "Model veya rapor dosyaları yüklenemedi"}), 500
+    if not all([model, scaler, classification_report_data, accuracy_data, activity_df is not None]):
+        return jsonify({"error": "Model, rapor dosyaları veya aktivite veri seti yüklenemedi"}), 500
     
     data = request.get_json()
     if not data:
         return jsonify({"error": "Invalid input for analysis"}), 400
+
+    # Örnek bir kullanıcı ID'si al (gerçek bir sistemde bu, oturumdan gelir)
+    sample_user_id = 1503960366 
 
     features = ['TotalSteps', 'TotalDistance', 'VeryActiveMinutes', 'FairlyActiveMinutes', 'LightlyActiveMinutes', 'SedentaryMinutes', 'Calories']
     try:
@@ -82,12 +124,18 @@ def activity_analysis_endpoint():
     level_map = {"Düşük Aktif": "Beginner", "Orta Aktif": "Intermediate", "Yüksek Aktif": "Advanced"}
     predicted_level = level_map.get(prediction, "Beginner")
 
+    # Yeni skorları ve verileri hesapla
+    stress_score = calculate_stress_score(sample_user_id)
+    sleep_data = get_user_sleep_data(sample_user_id)
+
     # model_builder.py'den gelen modelin test doğruluğunu ve raporunu ekle
     analysis_result = {
         "predictedLevel": predicted_level,
         "modelAccuracy": accuracy_data['accuracy'],
         "classificationReport": classification_report_data,
-        "userData": data
+        "userData": data,
+        "sleepData": sleep_data,
+        "stressScore": stress_score,
     }
     
     return jsonify(analysis_result)
@@ -96,21 +144,20 @@ def activity_analysis_endpoint():
 @app.route('/generate-program', methods=['POST'])
 def generate_program_endpoint():
     data = request.get_json()
-
     if not data:
         return jsonify({"error": "Invalid input"}), 400
 
     # Frontend'den gelen 4 anahtar kelime
     goal = data.get('goal')
-    level = data.get('level')
+    user_level = data.get('level') # Kullanıcının seçtiği
     frequency = data.get('frequency')
-    duration = data.get('duration')
+    predicted_level = data.get('predictedLevel') # Frontend'in gönderdiği tahmin edilen seviye
 
-    if not all([goal, level, frequency, duration]):
+    if not all([goal, user_level, frequency, predicted_level]):
         return jsonify({"error": "Missing one or more required fields"}), 400
 
-    # AI modülümüzü çağır
-    program = generate_program(goal, level, frequency, duration)
+    # AI modülümüzü yeni 4 parametre ile çağır
+    program = generate_program(goal, user_level, predicted_level, frequency)
 
     if "error" in program:
         return jsonify(program), 400

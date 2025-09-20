@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const PersonalizedProgram = ({ settings }) => {
+const PersonalizedProgram = ({ settings, scrollRef }) => { // scrollRef prop'unu al
     const [programData, setProgramData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -31,6 +31,15 @@ const PersonalizedProgram = ({ settings }) => {
         }
     }, [settings]); // 'settings' değiştiğinde bu effect tekrar çalışır
 
+    // YENİ: Veri yüklendiğinde kaydırma animasyonunu tetikle
+    useEffect(() => {
+        if (programData && scrollRef.current) {
+            setTimeout(() => {
+                scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    }, [programData, scrollRef]); // programData değiştiğinde çalışır
+
     if (!settings) {
         return null; // Ayarlar yoksa hiçbir şey gösterme
     }
@@ -49,6 +58,7 @@ const PersonalizedProgram = ({ settings }) => {
 
     // Haftanın günlerini doğru sırada render etmek için bir dizi oluşturalım
     const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const scheduleKeys = ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7"];
     const schedule = programData.schedule || {};
 
     return (
@@ -71,10 +81,10 @@ const PersonalizedProgram = ({ settings }) => {
                         </thead>
                         <tbody>
                             <tr>
-                                {weekDays.map(day => (
-                                    <td key={day} className="border border-stone-300 dark:border-gray-600 px-4 py-4 text-sm text-stone-600 dark:text-gray-300 bg-white dark:bg-gray-900 align-top h-48">
+                                {scheduleKeys.map(dayKey => (
+                                    <td key={dayKey} className="border border-stone-300 dark:border-gray-600 px-4 py-4 text-sm text-stone-600 dark:text-gray-300 bg-white dark:bg-gray-900 align-top h-48">
                                         <ul className="space-y-2">
-                                            {(schedule[day] || []).map((exercise, index) => (
+                                            {(schedule[dayKey] || []).map((exercise, index) => (
                                                 <li key={index}>
                                                     <strong>{exercise.name}</strong>
                                                     {exercise.sets && <span className="block text-xs">{exercise.sets}</span>}

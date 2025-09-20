@@ -1,188 +1,95 @@
 import random
+# Yeni mantık modülümüzden tüm temel yapı taşlarını import ediyoruz
+from workout_logic import EXERCISE_DB, GOAL_LOGIC, PROGRAM_TEMPLATES
 
-# Gelişmiş Egzersiz Veritabanı: Her egzersiz bir obje olarak tanımlandı.
-# type: 'Compound' (Bileşik), 'Isolation' (İzole)
-# level: 'Beginner', 'Intermediate', 'Advanced'
-EXERCISE_DB = {
-    "chest": [
-        {"name": "Push-ups", "type": "Compound", "level": "Beginner"},
-        {"name": "Dumbbell Bench Press", "type": "Compound", "level": "Beginner"},
-        {"name": "Barbell Bench Press", "type": "Compound", "level": "Intermediate"},
-        {"name": "Incline Dumbbell Press", "type": "Compound", "level": "Intermediate"},
-        {"name": "Dumbbell Flyes", "type": "Isolation", "level": "Beginner"},
-        {"name": "Cable Crossover", "type": "Isolation", "level": "Intermediate"},
-        {"name": "Chest Dips", "type": "Compound", "level": "Advanced"},
-    ],
-    "back": [
-        {"name": "Lat Pulldown", "type": "Compound", "level": "Beginner"},
-        {"name": "Seated Cable Row", "type": "Compound", "level": "Beginner"},
-        {"name": "Bent-over Row", "type": "Compound", "level": "Intermediate"},
-        {"name": "Pull-ups", "type": "Compound", "level": "Intermediate"},
-        {"name": "T-Bar Row", "type": "Compound", "level": "Advanced"},
-        {"name": "Deadlift", "type": "Compound", "level": "Advanced"},
-        {"name": "Face Pulls", "type": "Isolation", "level": "Beginner"},
-    ],
-    "quads": [
-        {"name": "Goblet Squat", "type": "Compound", "level": "Beginner"},
-        {"name": "Leg Press", "type": "Compound", "level": "Beginner"},
-        {"name": "Leg Extensions", "type": "Isolation", "level": "Beginner"},
-        {"name": "Barbell Squat", "type": "Compound", "level": "Intermediate"},
-        {"name": "Front Squat", "type": "Compound", "level": "Advanced"},
-    ],
-    "hamstrings": [
-        {"name": "Leg Curls", "type": "Isolation", "level": "Beginner"},
-        {"name": "Romanian Deadlift", "type": "Compound", "level": "Intermediate"},
-        {"name": "Good Mornings", "type": "Compound", "level": "Advanced"},
-    ],
-    "glutes": [
-        {"name": "Glute Bridges", "type": "Isolation", "level": "Beginner"},
-        {"name": "Cable Kickbacks", "type": "Isolation", "level": "Intermediate"},
-        {"name": "Hip Thrust", "type": "Compound", "level": "Intermediate"},
-    ],
-    "calves": [
-        {"name": "Calf Raises", "type": "Isolation", "level": "Beginner"},
-        {"name": "Seated Calf Raises", "type": "Isolation", "level": "Beginner"},
-    ],
-    "shoulders": [
-        {"name": "Dumbbell Overhead Press", "type": "Compound", "level": "Beginner"},
-        {"name": "Lateral Raises", "type": "Isolation", "level": "Beginner"},
-        {"name": "Barbell Overhead Press", "type": "Compound", "level": "Intermediate"},
-        {"name": "Arnold Press", "type": "Compound", "level": "Intermediate"},
-        {"name": "Front Raises", "type": "Isolation", "level": "Beginner"},
-    ],
-    "biceps": [
-        {"name": "Dumbbell Curls", "type": "Isolation", "level": "Beginner"},
-        {"name": "Hammer Curls", "type": "Isolation", "level": "Beginner"},
-        {"name": "Barbell Curls", "type": "Isolation", "level": "Intermediate"},
-        {"name": "Preacher Curls", "type": "Isolation", "level": "Intermediate"},
-    ],
-    "triceps": [
-        {"name": "Tricep Pushdown", "type": "Isolation", "level": "Beginner"},
-        {"name": "Overhead Tricep Extension", "type": "Isolation", "level": "Beginner"},
-        {"name": "Tricep Dips", "type": "Compound", "level": "Intermediate"},
-        {"name": "Skull Crushers", "type": "Isolation", "level": "Intermediate"},
-    ],
-    "abs": [
-        {"name": "Crunches", "type": "Isolation", "level": "Beginner"},
-        {"name": "Plank", "type": "Isolation", "level": "Beginner"},
-        {"name": "Leg Raises", "type": "Isolation", "level": "Intermediate"},
-        {"name": "Russian Twists", "type": "Isolation", "level": "Intermediate"},
-        {"name": "Cable Crunches", "type": "Isolation", "level": "Advanced"},
-    ]
-}
+def get_allowed_exercises(muscle_group, user_level, predicted_level):
+    """
+    Hibrit AI mantığını kullanarak kullanıcının seviyesine uygun egzersizleri filtreler.
+    Kullanıcının beyan ettiği ve modelin tahmin ettiği seviyeyi karşılaştırır.
+    """
+    level_map = {"beginner": 1, "intermediate": 2, "advanced": 3}
+    user_lvl = level_map.get(user_level, 1)
+    predicted_lvl = level_map.get(predicted_level, 1)
 
-REP_SCHEMES = {
-    "muscle_gain": "4 sets x 10-12 reps",
-    "strength": "5 sets x 4-6 reps",
-    "weight_loss": "3 sets x 15-20 reps",
-    "general_health": "3 sets x 12-15 reps"
-}
+    # Sanal antrenör karar verir: Daha temkinli olan seviyeyi baz al.
+    # Örn: Kullanıcı "advanced" dedi ama model "beginner" bulduysa, max_level = 1 olur.
+    max_level = min(user_lvl, predicted_lvl)
 
-PROGRAM_SPLITS = {
-    # ... (Splits can remain the same or be updated too) ...
-    "3": {
-        "name": "Full Body Workout",
-        "description": "A program that works all major muscle groups in each session.",
-        "schedule": {
-            "Monday": ["chest", "back", "quads"],
-            "Tuesday": ["rest"],
-            "Wednesday": ["shoulders", "hamstrings", "biceps", "triceps"],
-            "Thursday": ["rest"],
-            "Friday": ["chest", "back", "glutes", "abs"],
-            "Saturday": ["rest"],
-            "Sunday": ["rest"]
-        }
-    },
-    "4": {
-        "name": "Upper/Lower Body Split",
-        "description": "A popular program that separates training into upper and lower body days.",
-        "schedule": {
-            "Monday": ["chest", "shoulders", "triceps"], # Upper
-            "Tuesday": ["quads", "hamstrings", "calves"], # Lower
-            "Wednesday": ["rest"],
-            "Thursday": ["back", "biceps"], # Upper
-            "Friday": ["glutes", "hamstrings", "abs"], # Lower
-            "Saturday": ["rest"],
-            "Sunday": ["rest"]
-        }
-    },
-    "5": {
-        "name": "Body Part Split (Bro Split)",
-        "description": "An advanced program focusing on one or two muscle groups per day.",
-        "schedule": {
-            "Monday": ["chest", "abs"],
-            "Tuesday": ["back"],
-            "Wednesday": ["quads", "hamstrings", "calves"],
-            "Thursday": ["shoulders"],
-            "Friday": ["biceps", "triceps"],
-            "Saturday": ["rest"],
-            "Sunday": ["rest"]
-        }
-    }
-}
-
-def get_allowed_exercises(muscle_group, level):
-    """Kullanıcının seviyesine uygun egzersizleri filtreler."""
-    level_map = {
-        "beginner": 1,
-        "intermediate": 2,
-        "advanced": 3
-    }
-    user_level = level_map.get(level, 1)
-    
     allowed = []
     for ex in EXERCISE_DB.get(muscle_group, []):
-        if level_map.get(ex["level"], 1) <= user_level:
+        if level_map.get(ex["level"].lower(), 1) <= max_level:
             allowed.append(ex)
     return allowed
 
-def generate_program(goal, level, frequency, duration):
-    """
-    Generates a personalized training program based on user inputs.
-    """
-    if frequency not in PROGRAM_SPLITS:
-        return {"error": "Invalid frequency selection"}
-
-    split = PROGRAM_SPLITS[frequency]
-    reps = REP_SCHEMES.get(goal, "3 sets x 12 reps")
+def select_template(goal, frequency):
+    """Kullanıcının hedefine ve frekansına göre en uygun program şablonunu seçer."""
+    # Öncelik her zaman kullanıcının seçtiği gün sayısıdır.
+    if frequency == "5":
+        # 5 gün için en uygun şablon "Body Part Split"tir.
+        return PROGRAM_TEMPLATES["5_day_body_part"]
+    if frequency == "4":
+        # 4 gün için en uygun şablon "Upper/Lower"dır.
+        return PROGRAM_TEMPLATES["4_day_upper_lower"]
+    if frequency == "3":
+        # 3 gün için en uygun şablon "Full Body"dir.
+        return PROGRAM_TEMPLATES["3_day_full_body"]
     
-    total_exercises_per_session = 3
-    if duration == "45":
-        total_exercises_per_session = 4
-    elif duration == "60":
-        total_exercises_per_session = 5
+    # Herhangi bir eşleşme olmazsa varsayılan olarak 3 günlük bir program döndür.
+    return PROGRAM_TEMPLATES["3_day_full_body"]
+
+def generate_program(goal, user_level, predicted_level, frequency):
+    """
+    Generates a highly personalized training program using Hybrid AI logic.
+    """
+    template = select_template(goal, frequency)
+    logic = GOAL_LOGIC.get(goal, GOAL_LOGIC["general_health"])
+    reps = logic["reps"]
+    exercises_per_muscle = logic["exercises_per_muscle"]
 
     final_schedule = {}
-    for day, muscle_groups in split["schedule"].items():
+    
+    # Isınma ve soğumayı her zaman ekle
+    warmup_exercises = random.sample(EXERCISE_DB["warmup"], 2)
+    cooldown_exercises = random.sample(EXERCISE_DB["cooldown"], 2)
+
+    day_names = list(template["schedule"].keys())
+    
+    for day_name, muscle_groups in template["schedule"].items():
         if "rest" in muscle_groups:
-            final_schedule[day] = [{"name": "Rest Day", "sets": ""}]
+            final_schedule[day_name] = [{"name": "Rest Day", "sets": ""}]
             continue
-            
+
         daily_exercises_obj = []
-        # Her kas grubu için izin verilen egzersizleri topla
         for group in muscle_groups:
-            allowed = get_allowed_exercises(group, level)
-            daily_exercises_obj.extend(allowed)
+            allowed = get_allowed_exercises(group, user_level, predicted_level)
+            
+            # Bileşik ve izole hareketleri ayır
+            compounds = [ex for ex in allowed if ex['type'] == 'Compound']
+            isolations = [ex for ex in allowed if ex['type'] == 'Isolation']
+            
+            # Her kas grubu için öncelikli olarak bileşik hareket seç
+            if compounds:
+                daily_exercises_obj.append(random.choice(compounds))
+            # Kalan yer varsa izole hareket ekle
+            if isolations and len(daily_exercises_obj) < exercises_per_muscle * len(muscle_groups):
+                 daily_exercises_obj.append(random.choice(isolations))
 
-        # Egzersizleri karıştır ve yinelenenleri kaldır
-        random.shuffle(daily_exercises_obj)
+        # Tekrarları önle
         seen = set()
-        unique_exercises = []
-        for ex in daily_exercises_obj:
-            if ex['name'] not in seen:
-                unique_exercises.append(ex)
-                seen.add(ex['name'])
-
-        # Önce Compound, sonra Isolation hareketlerini sırala
-        sorted_exercises = sorted(unique_exercises, key=lambda x: x['type'] != 'Compound')
+        unique_exercises = [ex for ex in daily_exercises_obj if not (ex['name'] in seen or seen.add(ex['name']))]
         
-        # Gerekli sayıda egzersiz seç
-        chosen_exercises = sorted_exercises[:total_exercises_per_session]
+        # Egzersizleri formatla
+        formatted_exercises = [{"name": ex['name'], "sets": reps} for ex in unique_exercises]
 
-        final_schedule[day] = [{"name": ex['name'], "sets": reps} for ex in chosen_exercises]
+        # Başına ısınma, sonuna soğuma ekle
+        final_schedule[day_name] = [
+            {"name": "Warm-up", "sets": ", ".join(e['duration'] for e in warmup_exercises)},
+            *formatted_exercises,
+            {"name": "Cool-down", "sets": ", ".join(e['duration'] for e in cooldown_exercises)}
+        ]
 
     return {
-        "programName": split["name"],
-        "description": split["description"],
+        "programName": template["name"],
+        "description": template["description"],
         "schedule": final_schedule
     }

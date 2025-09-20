@@ -10,20 +10,20 @@ const MainPage = () => {
     setProgramSettings(settings);
   };
 
-  useEffect(() => {
-    if (programSettings && programRef.current) {
-      setTimeout(() => {
-        programRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
-  }, [programSettings]);
+  const handleClearProgram = () => {
+    setProgramSettings(null);
+  };
+
+  // Buradaki kaydırma useEffect'ini kaldırıyoruz çünkü mantığı PersonalizedProgram'a taşıyacağız
+  // useEffect(() => { ... });
 
   return (
     <>
-      <ProgramBuilder onGenerateProgram={handleGenerateProgram} />
+      <ProgramBuilder onGenerateProgram={handleGenerateProgram} onReset={handleClearProgram} />
       {programSettings && (
         <div ref={programRef} className="mt-16">
-          <PersonalizedProgram settings={programSettings} />
+          {/* scrollRef prop'u ile referansı çocuğa iletiyoruz */}
+          <PersonalizedProgram settings={programSettings} scrollRef={programRef} />
         </div>
       )}
     </>
