@@ -5,7 +5,6 @@ import MainPage from './pages/MainPage';
 import MyActivity from './pages/MyActivity';
 
 function App() {
-  const location = useLocation();
 
   return (
     <div 

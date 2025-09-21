@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const PersonalizedProgram = ({ settings, scrollRef }) => { // scrollRef prop'unu al
+const PersonalizedProgram = ({ settings, scrollRef }) => {
     const [programData, setProgramData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -16,7 +16,6 @@ const PersonalizedProgram = ({ settings, scrollRef }) => { // scrollRef prop'unu
             const fetchProgram = async () => {
                 try {
                     // Backend API'sine POST isteği gönder
-                    // Gövdede kullanıcının seçimlerini yolla
                     const response = await axios.post('http://localhost:5000/generate-program', settings);
                     setProgramData(response.data);
                 } catch (err) {
@@ -29,9 +28,8 @@ const PersonalizedProgram = ({ settings, scrollRef }) => { // scrollRef prop'unu
 
             fetchProgram();
         }
-    }, [settings]); // 'settings' değiştiğinde bu effect tekrar çalışır
+    }, [settings]);
 
-    // YENİ: Veri yüklendiğinde kaydırma animasyonunu tetikle
     useEffect(() => {
         if (programData && scrollRef.current) {
             setTimeout(() => {
@@ -41,7 +39,7 @@ const PersonalizedProgram = ({ settings, scrollRef }) => { // scrollRef prop'unu
     }, [programData, scrollRef]); // programData değiştiğinde çalışır
 
     if (!settings) {
-        return null; // Ayarlar yoksa hiçbir şey gösterme
+        return null;
     }
 
     if (loading) {
@@ -56,7 +54,6 @@ const PersonalizedProgram = ({ settings, scrollRef }) => { // scrollRef prop'unu
         return null;
     }
 
-    // Haftanın günlerini doğru sırada render etmek için bir dizi oluşturalım
     const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     const scheduleKeys = ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7"];
     const schedule = programData.schedule || {};

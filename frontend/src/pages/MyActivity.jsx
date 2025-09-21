@@ -12,15 +12,14 @@ const MyActivity = () => {
 
     useEffect(() => {
         const fetchAnalysis = async () => {
-            // This data would normally come from the logged-in user or a form
-            const sampleUserData = {
-                "TotalSteps": 8560, "TotalDistance": 6.1, "VeryActiveMinutes": 35,
-                "FairlyActiveMinutes": 30, "LightlyActiveMinutes": 210,
-                "SedentaryMinutes": 550, "Calories": 2450
-            };
             try {
-                const response = await axios.post('http://localhost:5000/activity-analysis', sampleUserData);
-                setAnalysis(response.data);
+                // 1. Rastgele aktivite verisi çek
+                const activityResponse = await axios.get('http://localhost:5000/get-random-activity');
+                const userData = activityResponse.data;
+
+                // 2. Çekilen veriyle analiz yap
+                const analysisResponse = await axios.post('http://localhost:5000/activity-analysis', userData);
+                setAnalysis(analysisResponse.data);
             } catch (err) {
                 setError('Could not load activity analysis. Please ensure the API server is running.');
             } finally {
@@ -42,8 +41,6 @@ const MyActivity = () => {
         { name: 'Lightly Active', minutes: userData.LightlyActiveMinutes, fill: '#84cc16' },
         { name: 'Sedentary', minutes: userData.SedentaryMinutes, fill: '#277dF5' },
     ];
-    
-    // --- YENİ BİLEŞENLER ---
 
     const TooltipInfo = ({ text }) => (
         <div className="group relative flex justify-center">

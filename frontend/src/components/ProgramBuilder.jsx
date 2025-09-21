@@ -10,9 +10,7 @@ const Step = ({ number, title, active, completed }) => (
             }`}>
                 {number}
             </span>
-            {/* Arka plandaki tam genişlikte çizgi */}
             <div aria-hidden="true" className={`absolute inset-0 top-5 left-5 -ml-px h-0.5 w-full bg-gray-200 dark:bg-gray-700`}></div>
-            {/* Tamamlandığında görünen renkli çizgi */}
             <div aria-hidden="true" className={`absolute inset-0 top-5 left-5 -ml-px h-0.5 w-full bg-red-600 transition-all duration-500 ${ completed ? 'scale-x-100' : 'scale-x-0' }`} style={{ transformOrigin: 'left' }}></div>
         </div>
         <div className="mt-3 absolute" style={{ left: '1.25rem', transform: 'translateX(-50%)' }}>
@@ -38,13 +36,11 @@ function ProgramBuilder({ onGenerateProgram, onReset }) {
 
   useEffect(() => {
     const predictUserLevel = async () => {
-        const sampleUserData = {
-            "TotalSteps": 7500, "TotalDistance": 5.5, "VeryActiveMinutes": 20,
-            "FairlyActiveMinutes": 25, "LightlyActiveMinutes": 190,
-            "SedentaryMinutes": 600, "Calories": 2100
-        };
         try {
-            const response = await axios.post('http://localhost:5000/predict-level', sampleUserData);
+            const activityResponse = await axios.get('http://localhost:5000/get-random-activity');
+            const userData = activityResponse.data;
+
+            const response = await axios.post('http://localhost:5000/predict-level', userData);
             const level = response.data.predictedLevel;
             if (level) {
                 setSelections(prev => ({ ...prev, level: level }));
@@ -66,7 +62,7 @@ function ProgramBuilder({ onGenerateProgram, onReset }) {
   
   const handleReset = () => {
       if (onReset) {
-        onReset(); // Üst bileşene tabloyu temizlemesini söyle
+        onReset();
       }
 
       if (currentStep === 3) {
@@ -79,7 +75,7 @@ function ProgramBuilder({ onGenerateProgram, onReset }) {
                   ...initialSelections,
                   level: predictedLevel || ''
               });
-          }, 500); // CSS animasyon süresiyle eşleşmeli
+          }, 500);
       } else {
           // Adım 2 veya 1'deyse, direkt sıfırla
           setSelections({
@@ -94,17 +90,14 @@ function ProgramBuilder({ onGenerateProgram, onReset }) {
     const frequencySelected = selections.frequency !== '';
     const levelSelected = selections.level !== '';
 
-    // Program oluşturmaya hazır
     if (goalSelected && frequencySelected && levelSelected) {
         return 3;
     }
 
-    // Kullanıcı manuel bir seçim yaptığında ilerle (AI'nın seçimini yoksay)
     if (goalSelected || frequencySelected) {
         return 2;
     }
 
-    // Başlangıç durumu
     return 1;
   }, [selections]);
 

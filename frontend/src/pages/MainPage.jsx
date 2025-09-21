@@ -14,9 +14,6 @@ const MainPage = () => {
     setProgramSettings(null);
   };
 
-  // Buradaki kaydırma useEffect'ini kaldırıyoruz çünkü mantığı PersonalizedProgram'a taşıyacağız
-  // useEffect(() => { ... });
-
   return (
     <>
       <ProgramBuilder onGenerateProgram={handleGenerateProgram} onReset={handleClearProgram} />

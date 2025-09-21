@@ -51,6 +51,27 @@ def calculate_stress_score(user_id):
     stress_score = max(0, 100 - (hr_std_dev * 2)) 
     return round(stress_score, 2)
 
+@app.route('/get-random-activity', methods=['GET'])
+def get_random_activity():
+    if activity_df is None:
+        return jsonify({"error": "Activity data not loaded"}), 500
+    
+    # Veri setinden rastgele bir satır seç
+    random_row = activity_df.sample(n=1).iloc[0]
+    
+    # Gerekli sütunları seç ve JSON olarak döndür
+    activity_data = {
+        "TotalSteps": int(random_row['TotalSteps']),
+        "TotalDistance": float(random_row['TotalDistance']),
+        "VeryActiveMinutes": int(random_row['VeryActiveMinutes']),
+        "FairlyActiveMinutes": int(random_row['FairlyActiveMinutes']),
+        "LightlyActiveMinutes": int(random_row['LightlyActiveMinutes']),
+        "SedentaryMinutes": int(random_row['SedentaryMinutes']),
+        "Calories": int(random_row['Calories'])
+    }
+    
+    return jsonify(activity_data)
+
 def get_user_sleep_data(user_id):
     """Kullanıcının uyku verilerini alır ve bir kalite skoru hesaplar."""
     if sleep_df is None: return {"quality_score": 0, "total_minutes_asleep": 0}
