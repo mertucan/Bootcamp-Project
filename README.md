@@ -1,6 +1,29 @@
 # FitBit Coach: AI-Powered Personal Fitness Koçu
 
-FitBit Coach'a hoş geldiniz! Bu akıllı web uygulaması, kişisel fitness asistanınız olmak üzere tasarlanmıştır. Proje, Fitbit verilerinize dayanarak size özel antrenman programları sunmak, fiziksel aktivitenizi, uyku düzeninizi ve stres seviyenizi derinlemesine analiz etmek için makine öğrenmesi ve kural tabanlı bir uzman sistem kullanır.
+FitBit Coach'a hoş geldiniz! Bu akıllı web uygulaması, kişisel fitness asistanınız olmak üzere tasarlanmıştır. Proje, Fitbit kullanıcı verilerini analiz ederek size özel antrenman programları sunmak, fiziksel aktivitenizi, uyku düzeninizi ve stres seviyenizi derinlemesine incelemek için **hibrit bir yapay zeka yaklaşımı** (makine öğrenmesi ve uzman sistem) kullanır.
+
+
+
+## 📸 Ekran Görüntüleri
+
+<table>
+  <tr>
+    <td align="center"><strong>Ana Sayfa - Program Oluşturucu</strong></td>
+    <td align="center"><strong>Aktivite Analiz Sayfası</strong></td>
+  </tr>
+  <tr>
+    <td><img src="./frontend/src/images/main-page.png" alt="Ana Sayfa"></td>
+    <td><img src="./frontend/src/images/activity-page.png" alt="Aktivite Analiz Sayfası"></td>
+  </tr>
+</table>
+
+## ✨ Temel Özellikler
+
+- **Dinamik Aktivite Analizi:** Gerçek Fitbit verileriyle beslenen, makine öğrenmesi destekli kişisel sağlık panosu.
+- **Akıllı Seviye Tespiti:** Kullanıcının fitness seviyesini günlük aktivite metriklerine dayanarak otomatik olarak tahmin eden bir **K-Nearest Neighbors (KNN)** modeli.
+- **Hibrit Program Üretici:** Hem yapay zekanın tahmin ettiği seviyeyi hem de kullanıcının kendi seçtiği seviyeyi dikkate alan, **güvenliği önceliklendiren** bir uzman sistem.
+- **Kapsamlı Sağlık Skorları:** Uyku kalitesi (verimlilik analizi) ve tahmini stres seviyesi (kalp atış hızı değişkenliği analizi) için gelişmiş metrikler.
+- **Modern ve İnteraktif Arayüz:** React, Vite ve Tailwind CSS ile oluşturulmuş, Recharts ile zengin veri görselleştirmeleri sunan kullanıcı dostu bir arayüz.
 
 ## 🚀 Teknoloji Yığını
 
@@ -8,32 +31,31 @@ FitBit Coach'a hoş geldiniz! Bu akıllı web uygulaması, kişisel fitness asis
 -   **Backend:** Flask, Pandas, Scikit-learn, Joblib
 -   **Veri Kaynağı:** Kaggle'dan [Fitbit Fitness Tracker Veri Seti](https://www.kaggle.com/datasets/arashnic/fitbit)
 
-## 🤖 Öne Çıkan Yapay Zeka Özellikleri
+## 🤖 Yapay Zeka Mimarisi
 
-Bu proje, son derece kişiselleştirilmiş ve akıllı bir kullanıcı deneyimi sunmak için hibrit bir yapay zeka yaklaşımını benimser.
+Bu proje, son derece kişiselleştirilmiş ve akıllı bir kullanıcı deneyimi sunmak için iki ana yapay zeka bileşenini birleştirir.
 
-### 1. Intelligent Program Generator (Expert System)
+### 1. Akıllı Program Üretici (Uzman Sistem)
 
-Uygulamanın kalbi, bir uzman sistem olarak çalışan yapay zeka destekli bir antrenman planlayıcısıdır. Statik antrenman planları sunmak yerine, birkaç ana faktöre dayanarak haftalık bir programı dinamik olarak oluşturur:
+Uygulamanın kalbi, bir uzman sistem gibi davranan yapay zeka destekli bir antrenman planlayıcısıdır. Statik planlar yerine, haftalık programı aşağıdaki faktörlere göre dinamik olarak oluşturur:
 
 -   **Kullanıcının Fitness Hedefi:** (Kas Kazanımı, Kilo Kaybı, Güç, Genel Sağlık)
 -   **Antrenman Sıklığı:** (Haftada 3, 4 veya 5 gün)
--   **Hybrid AI Level Assessment:** Benzersiz bir güvenlik ve kişiselleştirme özelliği. Sistem, hem **kullanıcının kendi bildirdiği fitness seviyesini** hem de makine öğrenmesi modelimiz tarafından **tahmin edilen fitness seviyesini** dikkate alır. Yapay zeka "koçu" daha sonra bu iki seviyeden *daha düşük* olanına uygun egzersizleri dikkatli bir şekilde seçerek programın hem etkili hem de güvenli olmasını sağlar.
--   **Dinamik Egzersiz Seçimi:** Sistem, kullanıcının hedefine göre bileşik hareketlere öncelik veren ve izolasyon egzersizleri ekleyen zengin bir egzersiz veritabanı kullanır. Ayrıca her antrenman günü için otomatik olarak ısınma ve soğuma rutinleri içerir.
+-   **Hibrit Seviye Değerlendirmesi (Güvenlik Odaklı):** Bu benzersiz özellik, hem **kullanıcının kendi bildirdiği** (`user_level`) hem de **makine öğrenmesi modelinin tahmin ettiği** (`predicted_level`) fitness seviyesini karşılaştırır. Sanal koç, bu iki seviyeden **daha düşük olanını** baz alarak programın hem etkili hem de güvenli olmasını sağlar.
+-   **Dinamik Egzersiz Seçimi:** Sistem, kullanıcının hedefine göre bileşik ve izole hareketlere öncelik veren zengin bir egzersiz veritabanı kullanır ve her antreman gününe otomatik olarak ısınma/soğuma rutinleri ekler.
 
-### 2. Comprehensive Activity Analysis (`My Activity` Sayfası)
+### 2. Kapsamlı Aktivite Analizi (`My Activity` Sayfası)
 
-Bu sayfa, veri analizi ve makine öğrenmesi ile desteklenen, kullanıcının sağlığı hakkında derinlemesine bilgiler sunan kişisel bir sağlık panosu olarak hizmet vermektedir.
+Bu sayfa, kullanıcının sağlığı hakkında derinlemesine bilgiler sunan kişisel bir sağlık panosudur.
 
--   **Fitness Level Prediction:**
-    -   **Model:** Denetimli bir makine öğrenmesi algoritması olan **K-Nearest Neighbors (KNN) Classifier** kullanıyoruz.
-    -   **Süreç:** Model, günlük aktivite metriklerindeki (Toplam Adım, Aktif Dakikalar, Yakılan Kalori vb.) kalıpları tanımak için Fitbit veri seti üzerinde eğitilmiştir. Sayfayı ziyaret ettiğinizde, örnek verileriniz modele beslenir ve model, aktivite profilinizin "Başlangıç", "Orta Düzey" veya "İleri Düzey" bir fitness seviyesiyle uyumlu olup olmadığını tahmin eder. Modelin doğruluğu, güvenilirliği sağlamak için sağlam bir **5-fold Cross-Validation** yöntemi kullanılarak değerlendirilir.
+-   **Fitness Seviyesi Tahmini:**
+    -   **Model:** Denetimli bir makine öğrenmesi algoritması olan **K-Nearest Neighbors (KNN) Classifier** kullanılır.
+    -   **Süreç:** Model, günlük aktivite metriklerindeki (`TotalSteps`, `TotalDistance`, `VeryActiveMinutes`, `FairlyActiveMinutes`, `LightlyActiveMinutes`, `SedentaryMinutes`, `Calories`) kalıpları tanımak için Fitbit veri seti üzerinde eğitilmiştir. Sayfa ziyaret edildiğinde, rastgele bir kullanıcı verisi modele beslenir ve kullanıcının aktivite profiline göre fitness seviyesi tahmin edilir. Modelin doğruluğu, **5-katlı Çapraz Doğrulama (5-fold Cross-Validation)** yöntemiyle değerlendirilerek güvenilirlik sağlanır.
 
--   **Sleep Quality Score:** Bu skor (0-100), **uyku verimliliğine** (sleep efficiency) dayanarak hesaplanır: `UykudaGeçenToplamDakika`'nın `YataktaGeçenToplamSüre`'ye oranı. Daha yüksek bir skor, daha dinlendirici ve verimli bir uykuya işaret eder.
+-   **Uyku Kalitesi Skoru:** Bu skor (0-100), **uyku verimliliğine** (`TotalMinutesAsleep` / `TotalTimeInBed`) dayanarak hesaplanır.
+-   **Tahmini Stres Skoru:** Bu skor (0-100), kullanıcının kalp atış hızı verilerinden **Kalp Atış Hızı Değişkenliği (HRV)** analiz edilerek tahmin edilir. Genellikle, daha yüksek değişkenlik daha düşük stres seviyesini gösterir.
 
--   **Estimated Stress Score:** Bu skor (0-100), kullanıcının saniye saniye kalp atış hızı verilerinden **Heart Rate Variability (HRV)** analiz edilerek tahmin edilir. Genellikle, daha yüksek değişkenlik (kalp atış hızında daha yüksek bir standart sapma), daha düşük stres ve daha iyi toparlanma ile ilişkilidir. Skor, kolayca anlaşılabilir olması için normalize edilmiştir.
-
-## ⚙️ Başlarken: Kurulum ve Çalıştırma
+## ⚙️ Kurulum ve Çalıştırma
 
 Projeyi yerel makinenizde kurmak ve çalıştırmak için bu adımları izleyin.
 
